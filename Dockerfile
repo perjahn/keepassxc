@@ -20,6 +20,7 @@ RUN apt-get update && \
       libargon2-dev \
       libbotan-2-dev \
       libgcrypt20-dev \
+      libkeyutils-dev \
       libminizip-dev \
       libpcsclite-dev \
       libqrencode-dev \

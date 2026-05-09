@@ -11,21 +11,22 @@ RUN apt-get update && \
       lsb-release \
       cmake \
       g++ \
-      qtbase5-dev \
-      qtbase5-private-dev \
-      qttools5-dev \
-      qttools5-dev-tools \
+      qt6-5compat-dev \
+      qt6-base-dev \
+      qt6-base-dev-tools \
+      qt6-base-private-dev \
+      qt6-svg-dev \
+      qt6-tools-dev \
+      libqt6network6 \
       zlib1g-dev \
       asciidoctor \
       libargon2-dev \
-      libbotan-2-dev \
+      libbotan-3-dev \
       libgcrypt20-dev \
       libkeyutils-dev \
       libminizip-dev \
       libpcsclite-dev \
       libqrencode-dev \
-      libqt5svg5-dev \
-      libqt5x11extras5-dev \
       libquazip5-dev \
       libreadline-dev \
       libsodium-dev \
@@ -33,34 +34,39 @@ RUN apt-get update && \
       libxi-dev \
       libxtst-dev \
       libykpers-1-dev \
-      libyubikey-dev
+      libyubikey-dev \
+      autoconf \
+      automake \
+      libtool \
+      pkg-config
 
 RUN lsb_release -a && \
     uname -a
+
+RUN git clone https://github.com/fukuchi/libqrencode && \
+    cd libqrencode && \
+    find | grep configure && \
+    ls -la && \
+    autoreconf -fi && \
+    ls -la && \
+    ./configure --enable-static --disable-shared && \
+    make && \
+    make install
 
 RUN git clone https://github.com/keepassxreboot/keepassxc
 
 RUN cd keepassxc && \
     mkdir build && \
     cd build && \
-    cmake -DWITH_XC_ALL=ON .. && \
+    cmake -DBUILD_SHARED_LIBS=OFF -DWITH_XC_ALL=ON -DKPXC_DEV_BOTAN3=ON .. && \
     make
 
-RUN mkdir slim && \
-    cp keepassxc/build/src/keepassxc slim && \
-    cd slim && \
-    cp /usr/lib/*-linux-gnu/libbotan-2.so.19 . && \
-    cp /usr/lib/*-linux-gnu/libtspi.so.1 . && \
-    7z a -mx9 ../keepassxc_slim_runtime.7z && \
-    cd .. && \
-    ls -la
-
-RUN mkdir full && \
-    cp keepassxc/build/src/keepassxc full && \
-    cd full && \
+RUN mkdir static && \
+    cp keepassxc/build/src/keepassxc static && \
+    cd static && \
     ldd keepassxc | awk '{print $3}' | xargs -I__ cp __ . && \
     ls -la && \
-    7z a -mx9 ../keepassxc_full_runtime.7z && \
+    7z a -mx9 ../keepassxc_static_runtime.7z && \
     cd .. && \
     ls -la
 
@@ -69,9 +75,8 @@ FROM ubuntu as runtime
 
 WORKDIR /app
 
-COPY --from=build /app/keepassxc_slim_runtime.7z /app
-COPY --from=build /app/keepassxc_full_runtime.7z /app
-COPY --from=build /app/full /app
+COPY --from=build /app/keepassxc_static_runtime.7z /app
+COPY --from=build /app/static /app
 
 RUN ls -la
 

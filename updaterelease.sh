@@ -22,6 +22,12 @@ if [ ! -z "$latest" ]; then
   fi
 fi
 
+tags=$(curl -s -H "$accept" -H "$auth" -H "$apiversion" "$baseurl/tags")
+for tag in $(jq -r '.[].name' <<< "$tags"); do
+  echo "Deleting tag: '$tag'"
+  curl -s -X DELETE -H "$accept" -H "$auth" -H "$apiversion" "$baseurl/git/refs/tags/$tag" > /dev/null
+done
+
 json='{"tag_name":"v1.0.'"$GITHUB_RUN_NUMBER"'","name":"v1.0.'"$GITHUB_RUN_NUMBER"'"}'
 
 echo 'Creating new release...'
@@ -41,7 +47,6 @@ if [ -z "$RELEASE_ID" ] || [ "$RELEASE_ID" = "null" ]; then
 fi
 
 echo 'Uploading assets...'
-curl -s -X POST -H "$accept" -H "$auth" -H "$apiversion" "$baseurluploads/releases/$RELEASE_ID/assets?name=keepassxc_slim_runtime.7z" --data-binary "@keepassxc_slim_runtime.7z" -H "$contenttype" > /dev/null
-curl -s -X POST -H "$accept" -H "$auth" -H "$apiversion" "$baseurluploads/releases/$RELEASE_ID/assets?name=keepassxc_full_runtime.7z" --data-binary "@keepassxc_full_runtime.7z" -H "$contenttype" > /dev/null
+curl -s -X POST -H "$accept" -H "$auth" -H "$apiversion" "$baseurluploads/releases/$RELEASE_ID/assets?name=keepassxc_static_runtime.7z" --data-binary "@keepassxc_static_runtime.7z" -H "$contenttype" > /dev/null
 
 echo 'Done!'

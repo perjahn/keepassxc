@@ -1,4 +1,4 @@
-FROM ubuntu as build
+FROM ubuntu AS build
 
 WORKDIR /app
 
@@ -32,6 +32,7 @@ RUN apt-get update && \
       libsodium-dev \
       libusb-1.0.0-dev \
       libxi-dev \
+      libxkbcommon-dev \
       libxtst-dev \
       libykpers-1-dev \
       libyubikey-dev \
@@ -42,16 +43,6 @@ RUN apt-get update && \
 
 RUN lsb_release -a && \
     uname -a
-
-RUN git clone https://github.com/fukuchi/libqrencode && \
-    cd libqrencode && \
-    find | grep configure && \
-    ls -la && \
-    autoreconf -fi && \
-    ls -la && \
-    ./configure --enable-static --disable-shared && \
-    make && \
-    make install
 
 RUN git clone https://github.com/keepassxreboot/keepassxc
 
@@ -71,7 +62,7 @@ RUN mkdir static && \
     ls -la
 
 
-FROM ubuntu as runtime
+FROM ubuntu AS runtime
 
 WORKDIR /app
 
